@@ -62,7 +62,8 @@ def main():
         x_train.assign(churn=y_train).to_csv("/tmp/reference.csv", index=False)
         mlflow.log_artifact("/tmp/reference.csv", artifact_path="data")
         mlflow.sklearn.log_model(model, name="model",
-                                 registered_model_name="churn-model")
+                                 registered_model_name="churn-model",
+                                 skops_trusted_types=["sklearn.tree._tree.Tree"])
         print("entraînement terminé")
 
 
