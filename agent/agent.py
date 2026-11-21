@@ -44,6 +44,11 @@ def decide(obs):
     auc_drop = metrics.get("roc_auc_drop", 0.0)
     detected = m["tags"].get("drift_detected") == "True"
     detail = ", ".join(f"{f} (PSI {psi_by_feature[f]:.2f})" for f in drifted) or "aucune variable"
+    if not detected and auc_drop >= AUC_DROP_ALERT:
+        return {"action": "propose_retrain", "severity": "high", "drifted_features": drifted,
+                "reason": f"Aucune dérive des variables, mais le ROC-AUC du champion a baissé de {auc_drop:.3f} "
+                          f"(seuil {AUC_DROP_ALERT}) : dérive de concept probable (la relation entre les "
+                          f"variables et le churn a changé). Réentraînement recommandé."}
     if not detected:
         return {"action": "no_action", "severity": "info", "drifted_features": drifted,
                 "reason": f"Pas de dérive détectée (PSI max {metrics.get('max_psi', 0):.2f})."}

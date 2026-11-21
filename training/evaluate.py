@@ -24,6 +24,7 @@ def score(model, df):
 
 def main():
     drift = float(os.getenv("DRIFT", "0.6"))
+    concept = float(os.getenv("CONCEPT", "0.0"))
     n = int(os.getenv("N_SAMPLES", "3000"))
     seed = int(os.getenv("SEED", "777"))
 
@@ -38,7 +39,7 @@ def main():
     champ_model = mlflow.sklearn.load_model(f"models:/{NAME}/{champion.version}")
     cand_model = mlflow.sklearn.load_model(f"models:/{NAME}/{cand}")
 
-    df = make_data(n, seed, drift)
+    df = make_data(n, seed, drift, concept)
     champ_score, cand_score = score(champ_model, df), score(cand_model, df)
     gain = cand_score["roc_auc"] - champ_score["roc_auc"]
     verdict = "pass" if gain >= MIN_AUC_GAIN else "fail"
@@ -47,6 +48,7 @@ def main():
         "champion_version": str(champion.version),
         "candidate_version": cand,
         "eval_drift": drift,
+        "eval_concept": concept,
         "eval_samples": n,
         "champion": champ_score,
         "candidate": cand_score,
@@ -64,6 +66,7 @@ def main():
                             **{f"candidate_{k}": v for k, v in cand_score.items()},
                             "roc_auc_gain": gain})
         mlflow.set_tag("evaluation", verdict)
+        mlflow.log_param("eval_concept", concept)
         mlflow.log_dict(report, "evaluation.json")
     client.set_model_version_tag(NAME, cand, "evaluation", verdict)
 

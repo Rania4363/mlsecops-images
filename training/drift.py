@@ -26,6 +26,7 @@ def psi(ref, new, bins=10):
 def main():
     n = int(os.getenv("N_SAMPLES", "2000"))
     drift = float(os.getenv("DRIFT", "0.0"))
+    concept = float(os.getenv("CONCEPT", "0.0"))
     seed = int(os.getenv("SEED", "123"))
 
     mlflow.set_tracking_uri(os.environ["MLFLOW_TRACKING_URI"])
@@ -37,9 +38,9 @@ def main():
     base = client.get_run(mv.run_id).data.metrics
     model = mlflow.sklearn.load_model("models:/churn-model@champion")
 
-    new = make_data(n, seed, drift)
+    new = make_data(n, seed, drift, concept)
 
-    report = {"champion_version": mv.version, "drift": drift, "features": {}}
+    report = {"champion_version": mv.version, "drift": drift, "concept": concept, "features": {}}
     for f in FEATURES:
         report["features"][f] = {
             "psi": psi(ref[f].to_numpy(), new[f].to_numpy()),
@@ -63,6 +64,7 @@ def main():
         mlflow.log_params({"champion_version": mv.version, "drift": drift,
                            "n_samples": n, "psi_threshold": PSI_ALERT})
         mlflow.set_tag("drift_detected", str(detected))
+        mlflow.log_param("concept", concept)
         metrics = {"max_psi": max_psi, **perf}
         for f, v in report["features"].items():
             metrics[f"psi_{f}"] = v["psi"]
