@@ -7,7 +7,7 @@ from mlflow.tracking import MlflowClient
 MODEL = os.getenv("MODEL_NAME", "churn-model")
 ALIAS = os.getenv("MODEL_ALIAS", "champion")
 PSI_ALERT = float(os.getenv("PSI_ALERT", "0.2"))
-AUC_DROP_ALERT = float(os.getenv("AUC_DROP_ALERT", "0.03"))
+AUC_DROP_ALERT = float(os.getenv("AUC_DROP_ALERT", "0.05"))
 
 
 def observe(client):

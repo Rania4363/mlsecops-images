@@ -20,8 +20,11 @@ def make_data(n, seed, drift=0.0, concept=0.0):
         p=[0.55 + 0.25 * drift, 0.25 - 0.10 * drift, 0.20 - 0.15 * drift],
     )
     tickets = rng.poisson(1.5 + 2.0 * drift, n)
-    logit = (-0.5 - 0.035 * tenure + (0.02 + 0.03 * concept) * (monthly - 65)
-             + (0.45 + 0.5 * concept) * tickets - (0.9 - 0.5 * concept) * contract)
+    logit = (-0.5
+             - (1 - concept) * 0.035 * tenure
+             + (0.02 + 0.045 * concept) * (monthly - 65)
+             + (1 - concept) * 0.45 * tickets
+             - (1 - concept) * 0.9 * contract)
     churn = (rng.random(n) < 1 / (1 + np.exp(-logit))).astype(int)
     return pd.DataFrame({
         "tenure": tenure,
