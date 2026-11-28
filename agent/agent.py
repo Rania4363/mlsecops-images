@@ -76,7 +76,7 @@ def main():
         mlflow.log_params({"champion_version": obs["champion_version"],
                            "action": decision["action"]})
         mlflow.set_tag("severity", decision["severity"])
-        mlflow.log_params({"llm_ok": advice["ok"],
+        mlflow.log_params({"llm_ok": advice["ok"], "llm_mode": advice.get("mode"),
                            "llm_action": advice.get("advice", {}).get("action", "none"),
                            "llm_agrees": advice.get("agrees", "n/a")})
         mlflow.log_metric("llm_latency_s", advice.get("latency_s", 0))
