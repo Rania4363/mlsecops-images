@@ -1,1 +1,1 @@
-FROM ollama/ollama:VERSION
+FROM ollama/ollama:0.40.19
