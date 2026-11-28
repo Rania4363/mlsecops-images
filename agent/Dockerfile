@@ -2,7 +2,7 @@ FROM python:3.12-slim
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-COPY agent.py promote.py .
+COPY agent.py promote.py llm.py .
 ENV HOME=/tmp GIT_PYTHON_REFRESH=quiet
 USER 10001
 ENTRYPOINT ["python", "agent.py"]

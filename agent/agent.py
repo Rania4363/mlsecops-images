@@ -4,6 +4,8 @@ import os
 import mlflow
 from mlflow.tracking import MlflowClient
 
+from llm import advise
+
 MODEL = os.getenv("MODEL_NAME", "churn-model")
 ALIAS = os.getenv("MODEL_ALIAS", "champion")
 PSI_ALERT = float(os.getenv("PSI_ALERT", "0.2"))
@@ -66,18 +68,24 @@ def main():
     client = MlflowClient()
     obs = observe(client)
     decision = decide(obs)
-    record = {"observation": obs, "decision": decision}
+    advice = advise(obs, decision)
+    record = {"observation": obs, "decision": decision, "llm": advice}
 
     mlflow.set_experiment("churn-agent")
     with mlflow.start_run():
         mlflow.log_params({"champion_version": obs["champion_version"],
                            "action": decision["action"]})
         mlflow.set_tag("severity", decision["severity"])
+        mlflow.log_params({"llm_ok": advice["ok"],
+                           "llm_action": advice.get("advice", {}).get("action", "none"),
+                           "llm_agrees": advice.get("agrees", "n/a")})
+        mlflow.log_metric("llm_latency_s", advice.get("latency_s", 0))
         if obs["monitoring"]:
             mlflow.log_metrics({k: v for k, v in obs["monitoring"]["metrics"].items()
                                 if k in ("max_psi", "roc_auc_drop", "roc_auc")})
         mlflow.log_dict(record, "decision.json")
 
+    print("LLM:", json.dumps(advice, ensure_ascii=False))
     print(json.dumps(decision, indent=2, ensure_ascii=False))
     print("DECISION:", decision["action"])
 
